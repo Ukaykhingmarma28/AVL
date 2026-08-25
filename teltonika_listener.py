@@ -45,6 +45,7 @@ import json
 import logging
 import logging.handlers
 import os
+import re
 import signal
 import socket
 import struct
@@ -1005,7 +1006,22 @@ def setup_logging(log_dir: str, level: str, store_raw: bool, quiet: bool) -> Non
 # CLI
 # --------------------------------------------------------------------------
 
-def load_allowlist(path: str | None) -> set[str] | None:
+def load_allowlist(path: str | None, inline: str | None = None) -> set[str] | None:
+    """
+    IMEIs from a file, or from a comma/whitespace separated string.
+
+    The inline form exists for container deployments, where mounting a file
+    is awkward but setting TELTONIKA_ALLOWED_IMEIS is trivial.
+    """
+    if inline:
+        imeis = {t for t in re.split(r"[,\s]+", inline.strip()) if t}
+        bad = {t for t in imeis if not t.isdigit()}
+        if bad:
+            log.error("non-numeric IMEI(s) in TELTONIKA_ALLOWED_IMEIS: %s",
+                      ", ".join(sorted(bad)))
+            sys.exit(2)
+        log.info("allowlist: %d IMEI(s) from the environment", len(imeis))
+        return imeis
     if not path:
         return None
     p = Path(path)
@@ -1109,7 +1125,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.decode_hex:
         return cmd_decode_hex(args.decode_hex, io_defs)
 
-    allowed = load_allowlist(args.allowlist)
+    allowed = load_allowlist(
+        args.allowlist, os.environ.get("TELTONIKA_ALLOWED_IMEIS")
+    )
     if args.database_url:
         from db_sink import TimescaleSink
         sink = TimescaleSink(args.database_url, pretty=args.pretty)

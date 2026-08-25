@@ -1,0 +1,43 @@
+[Unit]
+Description=Teltonika AVL TCP listener
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=teltonika
+Group=teltonika
+WorkingDirectory=/opt/teltonika
+ExecStart=/usr/bin/python3 /opt/teltonika/teltonika_listener.py \
+    --host 0.0.0.0 \
+    --port 5027 \
+    --io-definitions /opt/teltonika/io_definitions.json \
+    --log-dir /var/log/teltonika \
+    --log-level INFO \
+    --idle-timeout 600 \
+    --max-connections 500
+
+Restart=always
+RestartSec=5
+
+# Send stdout (the JSON record stream) to its own journal identifier so you
+# can do: journalctl -t teltonika-records -f
+StandardOutput=append:/var/log/teltonika/records-stdout.jsonl
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/teltonika
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

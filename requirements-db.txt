@@ -1,0 +1,3 @@
+# Only needed for the TimescaleDB sink (--database-url).
+# The listener itself remains stdlib-only.
+psycopg2-binary>=2.9

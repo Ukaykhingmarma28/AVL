@@ -102,3 +102,21 @@ allowlist before real data flows:
 ```
 
 Without it, anyone who finds the port can inject positions for any IMEI.
+
+## Prerequisite: a real public IP
+
+This whole approach needs the VPS to have a routable public IP. It does not
+work behind a tunnel.
+
+Cloudflare Tunnel carries arbitrary TCP only if `cloudflared` is installed on
+the **connecting client**. An FMB920 runs fixed firmware and cannot run it.
+Spectrum is the clientless Layer 4 alternative, but custom TCP protocols there
+require an Enterprise plan. Tailscale has the same shape: the client needs the
+software.
+
+The trackers open a plain TCP socket and nothing else. Any hop that expects
+HTTP (Traefik, the Cloudflare HTTP proxy) or client software (a tunnel) breaks
+the path.
+
+Without a public IP, host the listener on Railway instead — its TCP proxy
+gives a public `host:port` any TCP client can reach. See `deploy-railway.md`.

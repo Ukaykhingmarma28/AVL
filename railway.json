@@ -5,7 +5,6 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python3 -u /opt/teltonika/teltonika_listener.py --host 0.0.0.0 --port 5027 --io-definitions /opt/teltonika/io_definitions.json --log-dir /data/logs --log-level INFO --idle-timeout 600 --max-connections 500",
     "restartPolicyType": "ALWAYS",
     "restartPolicyMaxRetries": 10,
     "numReplicas": 1

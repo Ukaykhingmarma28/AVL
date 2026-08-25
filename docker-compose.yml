@@ -29,6 +29,9 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://teltonika:${POSTGRES_PASSWORD}@db:5432/teltonika
+      TELTONIKA_LOG_DIR: /var/log/teltonika
+      # Comma separated. Without it the listener accepts any device.
+      TELTONIKA_ALLOWED_IMEIS: ${TELTONIKA_ALLOWED_IMEIS:-}
     # The only port open to the world. Devices dial in here.
     ports:
       - "5027:5027"

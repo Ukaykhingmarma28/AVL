@@ -7,7 +7,9 @@ traffic never leaves Railway's private network.
 ## 1. Create the service
 
 New service → deploy from your repo. `railway.json` selects the Dockerfile
-builder and sets the start command, so no further build config is needed.
+builder. Do **not** set a custom start command: the image is configured
+entirely through environment variables, and a start command would be appended
+to the image's own, producing a garbled argv.
 
 ## 2. Volume (required)
 
@@ -17,6 +19,11 @@ every redeploy. `records.jsonl` is the durable system of record in this design
 
 - Attach a volume, mount path **`/data`**
 - Set **`RAILWAY_RUN_UID=0`**
+- Set **`TELTONIKA_LOG_DIR=/data/logs`**
+
+The log-dir variable is what actually puts the JSONL stream on the volume.
+The image defaults to `/var/log/teltonika`, which is ephemeral storage: the
+service would run fine and silently lose every log on each redeploy.
 
 The UID variable matters because the Dockerfile drops to the unprivileged
 `teltonika` user, which does not own a freshly-created volume. Without it the

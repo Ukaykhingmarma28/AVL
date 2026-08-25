@@ -13,14 +13,22 @@ RUN useradd --system --no-create-home --shell /usr/sbin/nologin teltonika \
 WORKDIR /opt/teltonika
 COPY teltonika_listener.py db_sink.py io_definitions.json ./
 
+# Configuration comes from the environment, not from baked-in flags. A CLI
+# argument always beats an env default, so hardcoding flags in CMD would make
+# every TELTONIKA_* variable silently inert. On Railway, point
+# TELTONIKA_LOG_DIR at the mounted volume (/data/logs).
+ENV TELTONIKA_HOST=0.0.0.0 \
+    TELTONIKA_PORT=5027 \
+    TELTONIKA_IO_DEFS=/opt/teltonika/io_definitions.json \
+    TELTONIKA_LOG_DIR=/var/log/teltonika \
+    TELTONIKA_LOG_LEVEL=INFO \
+    TELTONIKA_IDLE_TIMEOUT=600 \
+    TELTONIKA_MAX_CONNECTIONS=500
+
 USER teltonika
 EXPOSE 5027
 
-ENTRYPOINT ["python3", "-u", "/opt/teltonika/teltonika_listener.py"]
-CMD ["--host", "0.0.0.0", \
-     "--port", "5027", \
-     "--io-definitions", "/opt/teltonika/io_definitions.json", \
-     "--log-dir", "/var/log/teltonika", \
-     "--log-level", "INFO", \
-     "--idle-timeout", "600", \
-     "--max-connections", "500"]
+# No ENTRYPOINT: a platform-supplied start command replaces CMD, and with an
+# ENTRYPOINT present it would be appended to it instead, producing a garbled
+# argv.
+CMD ["python3", "-u", "/opt/teltonika/teltonika_listener.py"]

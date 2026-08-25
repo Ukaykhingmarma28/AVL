@@ -34,9 +34,13 @@ services:
       - "5027:5027"
     volumes:
       - ./logs:/var/log/teltonika
-      # Drop allowed_imeis.txt next to this file, then append
-      # --allowlist /opt/teltonika/allowed_imeis.txt to the command below.
-      - ./allowed_imeis.txt:/opt/teltonika/allowed_imeis.txt:ro
+      # To enable the IMEI allowlist: create allowed_imeis.txt next to this
+      # file, uncomment the mount, and add
+      #   --allowlist /opt/teltonika/allowed_imeis.txt
+      # to the container command. The file is gitignored, so it will not exist
+      # on a fresh clone -- and a missing bind-mount source makes Docker create
+      # a *directory* in its place, which fails confusingly.
+      # - ./allowed_imeis.txt:/opt/teltonika/allowed_imeis.txt:ro
 
 volumes:
   pgdata:

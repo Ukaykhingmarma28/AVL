@@ -13,6 +13,7 @@ Stdlib only. No pip install, no virtualenv needed.
 | `io_definitions.json` | IO id to name/unit/scale table. **Partial, see below.** |
 | `mock_device.py` | Fake device for testing without hardware. |
 | `teltonika-listener.service` | systemd unit for the droplet. |
+| `api_server.py` | REST + WebSocket/SSE API for a frontend. See `docs/api.md`. |
 
 ## Quick start
 

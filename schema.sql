@@ -43,3 +43,29 @@ CREATE INDEX IF NOT EXISTS avl_records_geom_idx
 -- Lookups by IO element, e.g. every record where ignition (id 239) was on.
 CREATE INDEX IF NOT EXISTS avl_records_io_idx
     ON avl_records USING GIN (io jsonb_path_ops);
+
+-- "What just arrived" — the poll fallback in api_server.py. Not part of the
+-- hypertable partitioning, so it cannot exclude chunks, but a per-chunk
+-- index lookup beats a sequential scan every two seconds.
+CREATE INDEX IF NOT EXISTS avl_records_received_at_idx
+    ON avl_records (received_at DESC);
+
+-- Push notifications for api_server.py. One pg_notify per inserted row,
+-- carrying only the primary key: NOTIFY payloads are capped at 8000 bytes
+-- and the io column alone can exceed that, so the API fetches the row.
+-- Retransmits hit ON CONFLICT DO NOTHING and never reach this trigger.
+CREATE OR REPLACE FUNCTION avl_records_notify() RETURNS trigger AS $$
+BEGIN
+    PERFORM pg_notify('avl_records', json_build_object(
+        'imei', NEW.imei,
+        'ts', NEW.ts,
+        'event_io_id', NEW.event_io_id
+    )::text);
+    RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS avl_records_notify ON avl_records;
+CREATE TRIGGER avl_records_notify
+    AFTER INSERT ON avl_records
+    FOR EACH ROW EXECUTE FUNCTION avl_records_notify();

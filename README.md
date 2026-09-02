@@ -13,7 +13,7 @@ Stdlib only. No pip install, no virtualenv needed.
 | `io_definitions.json` | IO id to name/unit/scale table. **Partial, see below.** |
 | `mock_device.py` | Fake device for testing without hardware. |
 | `teltonika-listener.service` | systemd unit for the droplet. |
-| `api_server.py` | REST + WebSocket/SSE API for a frontend. See `docs/api.md`. |
+| `api/` | REST + WebSocket/SSE API for a frontend, its own Dockerfile. See `docs/api.md`. |
 
 ## Quick start
 
@@ -91,15 +91,15 @@ events and panic on crash detection.
 
 ## Frontend API
 
-`api_server.py` serves the database to a browser: latest position per
+`api/api_server.py` serves the database to a browser: latest position per
 vehicle, per-vehicle history, and a WebSocket / Server-Sent Events stream
 that pushes every new record as it lands. It runs beside the listener and
 is not on the device path.
 
 ```bash
-.venv/bin/pip install -r requirements-api.txt
-set -a; . ./.env; set +a       # DATABASE_URL, API_KEY
-.venv/bin/python api_server.py # http://127.0.0.1:8000/docs
+.venv/bin/pip install -r api/requirements.txt
+set -a; . ./.env; set +a           # DATABASE_URL, API_KEY
+.venv/bin/python api/api_server.py # http://127.0.0.1:8000/docs
 ```
 
 Set `API_KEY` before exposing it. Endpoints, message formats, frontend

@@ -1,6 +1,6 @@
 # Fleet API for the frontend
 
-`api_server.py` is a small FastAPI service that reads `avl_records` and hands
+`api/api_server.py` is a small FastAPI service that reads `avl_records` and hands
 it to a browser: REST for "where is everything now" and history, plus a
 WebSocket and a Server-Sent Events stream that push every new record the
 moment it lands in the database. It never touches the device path; the
@@ -15,9 +15,9 @@ device ──▶ listener ──▶ TimescaleDB ──▶ api_server.py ──�
 ## Run it locally
 
 ```bash
-.venv/bin/pip install -r requirements-api.txt
-set -a; . ./.env; set +a          # DATABASE_URL, API_KEY
-.venv/bin/python api_server.py    # http://127.0.0.1:8000/docs
+.venv/bin/pip install -r api/requirements.txt
+set -a; . ./.env; set +a              # DATABASE_URL, API_KEY
+.venv/bin/python api/api_server.py    # http://127.0.0.1:8000/docs
 ```
 
 `/docs` is the interactive OpenAPI page; every endpoint below can be tried
@@ -150,7 +150,7 @@ this for you; on a droplet use Dokploy's Traefik or Caddy).
 ### docker-compose (droplet, Dokploy)
 
 `docker-compose.yml` already includes an `api` service built from
-`Dockerfile.api`, bound to `127.0.0.1:8000`. Put a reverse proxy in front.
+`api/Dockerfile`, bound to `127.0.0.1:8000`. Put a reverse proxy in front.
 With Caddy, this is the whole config:
 
 ```
@@ -163,22 +163,30 @@ Caddy proxies WebSockets and SSE without extra configuration.
 
 ### Railway
 
-Add a **second service** from the same repo, next to the listener, and set:
+The API lives in its own directory with its own `Dockerfile` and
+`railway.json`, so it deploys as a second service from the same repo using
+Railway's monorepo support. The listener service is untouched.
 
-| Variable | Value |
-|---|---|
-| `RAILWAY_CONFIG_FILE` | `railway.api.json` |
-| `DATABASE_URL` | `${{timescaledb.DATABASE_URL}}` (private network, same as the listener) |
-| `API_KEY` | `openssl rand -hex 24` |
-| `API_CORS_ORIGINS` | your frontend's origin |
+1. **New → GitHub Repo**, pick this repo again. Rename the service `api`.
+2. **Settings → Source → Root Directory**: enter `/api`. This is the whole
+   trick: Railway now builds from `api/Dockerfile` and reads
+   `api/railway.json`, and ignores the listener's `railway.json` at the
+   repo root. Do not set `RAILWAY_DOCKERFILE_PATH` or a custom config path;
+   those are overridden by the root config and are why a service without a
+   root directory quietly builds the listener image instead.
+3. **Variables**:
 
-`RAILWAY_CONFIG_FILE` is what makes the service build from `Dockerfile.api`.
-The repo's `railway.json` selects the listener's Dockerfile and applies to
-every service from this repo, so without it the new service silently builds
-the listener again. (Setting `RAILWAY_DOCKERFILE_PATH` alone is not enough:
-the config file wins.)
+   | Variable | Value |
+   |---|---|
+   | `DATABASE_URL` | `${{timescaledb.DATABASE_URL}}` (private network, same as the listener) |
+   | `API_KEY` | `openssl rand -hex 24`, or empty for open access |
+   | `API_CORS_ORIGINS` | your frontend's origin, or `*` |
 
-Then Settings → Networking → **Generate Domain**. Railway injects `PORT`
-and the image listens on it; WebSockets and SSE work through Railway's HTTP
-edge, unlike the raw TCP the listener needs. No volume is required: the API
-is stateless.
+4. **Settings → Networking → Generate Domain**. Railway injects `PORT` and
+   the image listens on it; WebSockets and SSE work through Railway's HTTP
+   edge, unlike the raw TCP the listener needs. No volume is required: the
+   API is stateless.
+
+The build log should start with `load build definition from Dockerfile`
+followed by `COPY requirements.txt` and `COPY api_server.py`. If you see
+`teltonika_listener.py` being copied, the root directory is not set.

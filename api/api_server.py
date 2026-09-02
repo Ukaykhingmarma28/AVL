@@ -3,7 +3,7 @@
 HTTP + WebSocket API over avl_records, for a tracking frontend.
 
     set -a; . ./.env; set +a
-    .venv/bin/python api_server.py            # http://127.0.0.1:8000/docs
+    .venv/bin/python api/api_server.py      # http://127.0.0.1:8000/docs
 
 REST
     GET /health

@@ -1,8 +1,8 @@
 FROM python:3.12-slim
 
-COPY requirements-api.txt /tmp/
-RUN pip install --no-cache-dir -r /tmp/requirements-api.txt \
-    && rm /tmp/requirements-api.txt
+COPY requirements.txt /tmp/
+RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt
 
 RUN useradd --system --no-create-home --shell /usr/sbin/nologin teltonika
 

@@ -46,9 +46,7 @@ services:
       # - ./allowed_imeis.txt:/opt/teltonika/allowed_imeis.txt:ro
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
+    build: ./api
     restart: unless-stopped
     depends_on:
       db:

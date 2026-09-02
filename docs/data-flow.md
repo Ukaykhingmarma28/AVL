@@ -113,7 +113,7 @@ Line numbers are `teltonika_listener.py` unless stated otherwise.
 | `io_definitions.json` | IO id → name/unit/scale; unknown ids decode unnamed |
 | `db_sink.py` | JSONL passthrough, batching, idempotent insert |
 | `schema.sql` | hypertable, PostGIS column, indexes, notify trigger |
-| `api/api_server.py` | reads the table for a frontend; not on the device path (`docs/api.md`) |
+| [AVL-api](https://github.com/Ukaykhingmarma28/AVL-api) | separate repo; reads the table for a frontend, not on the device path |
 | `docker-compose.yml` | production: listener + database on one host |
 | `check_db.py` | pre-flight verification of a database target |
 | `mock_device.py` | fake devices; replaces the top box for testing |

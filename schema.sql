@@ -44,13 +44,13 @@ CREATE INDEX IF NOT EXISTS avl_records_geom_idx
 CREATE INDEX IF NOT EXISTS avl_records_io_idx
     ON avl_records USING GIN (io jsonb_path_ops);
 
--- "What just arrived" — the poll fallback in api_server.py. Not part of the
+-- "What just arrived" — the poll fallback in the AVL-api service. Not part of the
 -- hypertable partitioning, so it cannot exclude chunks, but a per-chunk
 -- index lookup beats a sequential scan every two seconds.
 CREATE INDEX IF NOT EXISTS avl_records_received_at_idx
     ON avl_records (received_at DESC);
 
--- Push notifications for api_server.py. One pg_notify per inserted row,
+-- Push notifications for the AVL-api service (separate repo). One pg_notify per inserted row,
 -- carrying only the primary key: NOTIFY payloads are capped at 8000 bytes
 -- and the io column alone can exceed that, so the API fetches the row.
 -- Retransmits hit ON CONFLICT DO NOTHING and never reach this trigger.

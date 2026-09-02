@@ -89,6 +89,22 @@ Event records carry the element that triggered them. If `event_io_id` is 253,
 id 253 is in that record's IO set with its value. Priority is raised to high on
 events and panic on crash detection.
 
+## Frontend API
+
+`api_server.py` serves the database to a browser: latest position per
+vehicle, per-vehicle history, and a WebSocket / Server-Sent Events stream
+that pushes every new record as it lands. It runs beside the listener and
+is not on the device path.
+
+```bash
+.venv/bin/pip install -r requirements-api.txt
+set -a; . ./.env; set +a       # DATABASE_URL, API_KEY
+.venv/bin/python api_server.py # http://127.0.0.1:8000/docs
+```
+
+Set `API_KEY` before exposing it. Endpoints, message formats, frontend
+snippets and the Railway setup are in `docs/api.md`.
+
 ## Deploying to the droplet
 
 ```bash

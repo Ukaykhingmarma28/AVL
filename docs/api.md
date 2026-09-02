@@ -167,10 +167,16 @@ Add a **second service** from the same repo, next to the listener, and set:
 
 | Variable | Value |
 |---|---|
-| `RAILWAY_DOCKERFILE_PATH` | `Dockerfile.api` |
+| `RAILWAY_CONFIG_FILE` | `railway.api.json` |
 | `DATABASE_URL` | `${{timescaledb.DATABASE_URL}}` (private network, same as the listener) |
 | `API_KEY` | `openssl rand -hex 24` |
 | `API_CORS_ORIGINS` | your frontend's origin |
+
+`RAILWAY_CONFIG_FILE` is what makes the service build from `Dockerfile.api`.
+The repo's `railway.json` selects the listener's Dockerfile and applies to
+every service from this repo, so without it the new service silently builds
+the listener again. (Setting `RAILWAY_DOCKERFILE_PATH` alone is not enough:
+the config file wins.)
 
 Then Settings → Networking → **Generate Domain**. Railway injects `PORT`
 and the image listens on it; WebSockets and SSE work through Railway's HTTP
